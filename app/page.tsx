@@ -27,6 +27,17 @@ export default function WeddingInvitation() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [activeSection, setActiveSection] = useState('hero')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState({
+    name: '',
+    guests: '',
+    message: ''
+  })
+  const [fieldValid, setFieldValid] = useState({
+    name: false,
+    guests: true,
+    message: true
+  })
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [copiedCVU, setCopiedCVU] = useState(false)
   const [copiedAlias, setCopiedAlias] = useState(false)
@@ -81,9 +92,62 @@ export default function WeddingInvitation() {
 
   const { toast } = useToast()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Real-time validation functions
+  const validateName = (name: string) => {
+    if (!name.trim()) {
+      setFieldErrors(prev => ({ ...prev, name: 'El nombre es requerido' }))
+      setFieldValid(prev => ({ ...prev, name: false }))
+      return false
+    }
+    if (name.trim().length < 2) {
+      setFieldErrors(prev => ({ ...prev, name: 'El nombre debe tener al menos 2 caracteres' }))
+      setFieldValid(prev => ({ ...prev, name: false }))
+      return false
+    }
+    setFieldErrors(prev => ({ ...prev, name: '' }))
+    setFieldValid(prev => ({ ...prev, name: true }))
+    return true
+  }
+
+  const validateGuests = (guests: string) => {
+    const num = Number(guests)
+    if (isNaN(num) || num < 1 || num > 10) {
+      setFieldErrors(prev => ({ ...prev, guests: 'Debe ser entre 1 y 10 invitados' }))
+      setFieldValid(prev => ({ ...prev, guests: false }))
+      return false
+    }
+    setFieldErrors(prev => ({ ...prev, guests: '' }))
+    setFieldValid(prev => ({ ...prev, guests: true }))
+    return true
+  }
+
+  const validateMessage = (message: string) => {
+    if (message.length > 500) {
+      setFieldErrors(prev => ({ ...prev, message: 'El mensaje no puede exceder 500 caracteres' }))
+      setFieldValid(prev => ({ ...prev, message: false }))
+      return false
+    }
+    setFieldErrors(prev => ({ ...prev, message: '' }))
+    setFieldValid(prev => ({ ...prev, message: true }))
+    return true
+  }
+
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate all fields
+    const nameValid = validateName(formData.name)
+    const guestsValid = validateGuests(formData.guests)
+    const messageValid = validateMessage(formData.message)
+    
+    if (nameValid && guestsValid && messageValid) {
+      setShowConfirmModal(true)
+    }
+  }
+
+  const handleSubmit = async () => {
     setIsLoading(true)
+    setShowConfirmModal(false)
     
     try {
       // Basic client-side validation
@@ -125,6 +189,32 @@ export default function WeddingInvitation() {
       if (response.ok) {
         setIsLoading(false)
         setIsSubmitted(true)
+        
+        // Basic analytics tracking
+        try {
+          // Track RSVP submission event (Google Analytics)
+          if (typeof window !== 'undefined' && (window as any).gtag) {
+            (window as any).gtag('event', 'rsvp_submitted', {
+              event_category: 'engagement',
+              event_label: 'wedding_rsvp',
+              value: Number(result.data.invitados)
+            })
+          }
+          
+          // Simple local analytics (could be sent to your own analytics endpoint)
+          const analyticsData = {
+            timestamp: new Date().toISOString(),
+            guests: result.data.invitados,
+            hasMessage: !!formData.message,
+            userAgent: navigator.userAgent,
+            referrer: document.referrer
+          }
+          
+          // Store locally for now (in production, you'd send this to an analytics service)
+          localStorage.setItem('rsvp_analytics', JSON.stringify(analyticsData))
+        } catch (error) {
+          console.log('Analytics tracking failed:', error)
+        }
         
         // Show success toast
         toast({
@@ -170,6 +260,46 @@ export default function WeddingInvitation() {
     } catch (err) {
       console.error('Failed to copy: ', err)
     }
+  }
+
+  const generateCalendarEvent = () => {
+    const startDate = '20251007T123000' // October 7, 2025 at 12:30
+    const endDate = '20251008T020000'   // October 8, 2025 at 02:00 (estimated end)
+    
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Natalia & Jan Wedding//ES
+BEGIN:VEVENT
+UID:${Date.now()}@naty-jan-wedding.com
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTSTART:${startDate}
+DTEND:${endDate}
+SUMMARY:Boda de Natalia & Jan 💕
+DESCRIPTION:¡Celebremos juntos este día tan especial! Boda de Natalia y Jan.\\n\\nUbicación: Salón de Eventos\\nHora: 12:30 hs\\n\\n¡Te esperamos con mucha alegría!
+LOCATION:Salón de Eventos - Dirección por confirmar
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:Recordatorio: Boda de Natalia & Jan mañana
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+END:VCALENDAR`
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = 'boda-natalia-jan.ics'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(link.href)
+
+    toast({
+      title: "¡Evento agregado! 📅",
+      description: "El evento se ha descargado. Ábrelo para agregarlo a tu calendario.",
+    })
   }
 
   const FloatingElements = () => (
@@ -349,10 +479,18 @@ export default function WeddingInvitation() {
             ))}
           </div>
 
-          <div className="mt-12">
+          <div className="mt-12 space-y-6">
             <p className="text-xl text-eucalyptus font-medium">
               ¡Nos casamos el 7 de Octubre de 2025 a las 12:30 hs!
             </p>
+            
+            <Button
+              onClick={generateCalendarEvent}
+              className="bg-champagne hover:bg-champagne/90 text-charcoal font-semibold px-8 py-3 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg mx-auto flex items-center gap-2"
+            >
+              <Calendar className="w-5 h-5" />
+              Agregar al Calendario
+            </Button>
           </div>
         </div>
       </section>
@@ -668,7 +806,7 @@ export default function WeddingInvitation() {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <form onSubmit={handleFormSubmit} className="space-y-8">
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-charcoal mb-3">
@@ -677,10 +815,26 @@ export default function WeddingInvitation() {
                     <Input
                       required
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      className="border-2 border-eucalyptus/30 focus:border-eucalyptus rounded-xl px-4 py-3 text-lg transition-all duration-300 hover:border-eucalyptus/50"
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setFormData({...formData, name: value})
+                        validateName(value)
+                      }}
+                      onBlur={() => validateName(formData.name)}
+                      className={`border-2 focus:border-eucalyptus rounded-xl px-4 py-3 text-lg transition-all duration-300 hover:border-eucalyptus/50 ${
+                        fieldErrors.name ? 'border-red-400 focus:border-red-500' : 
+                        fieldValid.name ? 'border-green-400 focus:border-eucalyptus' : 'border-eucalyptus/30'
+                      }`}
                       placeholder="Tu nombre completo"
                     />
+                    {fieldErrors.name && (
+                      <p className="text-red-500 text-sm mt-1 animate-fade-in">{fieldErrors.name}</p>
+                    )}
+                    {fieldValid.name && !fieldErrors.name && (
+                      <p className="text-green-600 text-sm mt-1 animate-fade-in flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" /> Nombre válido
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-charcoal mb-3">
@@ -689,11 +843,22 @@ export default function WeddingInvitation() {
                     <Input
                       type="number"
                       min="1"
-                      max="5"
+                      max="10"
                       value={formData.guests}
-                      onChange={(e) => setFormData({...formData, guests: e.target.value})}
-                      className="border-2 border-eucalyptus/30 focus:border-eucalyptus rounded-xl px-4 py-3 text-lg transition-all duration-300 hover:border-eucalyptus/50"
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setFormData({...formData, guests: value})
+                        validateGuests(value)
+                      }}
+                      onBlur={() => validateGuests(formData.guests)}
+                      className={`border-2 focus:border-eucalyptus rounded-xl px-4 py-3 text-lg transition-all duration-300 hover:border-eucalyptus/50 ${
+                        fieldErrors.guests ? 'border-red-400 focus:border-red-500' : 
+                        fieldValid.guests ? 'border-green-400 focus:border-eucalyptus' : 'border-eucalyptus/30'
+                      }`}
                     />
+                    {fieldErrors.guests && (
+                      <p className="text-red-500 text-sm mt-1 animate-fade-in">{fieldErrors.guests}</p>
+                    )}
                   </div>
                 </div>
                 
@@ -703,29 +868,40 @@ export default function WeddingInvitation() {
                   </label>
                   <Textarea
                     value={formData.message}
-                    onChange={(e) => setFormData({...formData, message: e.target.value})}
-                    className="border-2 border-eucalyptus/30 focus:border-eucalyptus rounded-xl px-4 py-3 text-lg transition-all duration-300 hover:border-eucalyptus/50 min-h-[120px]"
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setFormData({...formData, message: value})
+                      validateMessage(value)
+                    }}
+                    onBlur={() => validateMessage(formData.message)}
+                    className={`border-2 focus:border-eucalyptus rounded-xl px-4 py-3 text-lg transition-all duration-300 hover:border-eucalyptus/50 min-h-[120px] ${
+                      fieldErrors.message ? 'border-red-400 focus:border-red-500' : 'border-eucalyptus/30'
+                    }`}
                     placeholder="Comparte tus buenos deseos para este día especial..."
                   />
+                  <div className="flex justify-between items-center mt-1">
+                    {fieldErrors.message && (
+                      <p className="text-red-500 text-sm animate-fade-in">{fieldErrors.message}</p>
+                    )}
+                    <p className={`text-sm ml-auto ${
+                      formData.message.length > 450 ? 'text-red-500' : 
+                      formData.message.length > 400 ? 'text-yellow-600' : 'text-gray-500'
+                    }`}>
+                      {formData.message.length}/500
+                    </p>
+                  </div>
                 </div>
                 
                 <div className="text-center pt-6">
                   <Button 
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || !fieldValid.name || !fieldValid.guests || !fieldValid.message}
                     className="bg-eucalyptus hover:bg-eucalyptus/90 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all duration-500 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px]"
                   >
-                    {isLoading ? (
-                      <div className="flex items-center gap-3">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Enviando...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Heart className="w-5 h-5" />
-                        Confirmar Asistencia
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Heart className="w-5 h-5" />
+                      Confirmar Asistencia
+                    </div>
                   </Button>
                 </div>
               </form>
@@ -733,6 +909,65 @@ export default function WeddingInvitation() {
           </CardContent>
         </Card>
       </section>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-scale-in">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-eucalyptus/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="w-8 h-8 text-eucalyptus" />
+              </div>
+              <h3 className="font-poppins text-2xl font-bold text-eucalyptus mb-2">Confirmar Asistencia</h3>
+              <p className="text-charcoal/70">¿Estás seguro de que quieres enviar tu confirmación?</p>
+            </div>
+            
+            <div className="bg-eucalyptus/5 rounded-xl p-4 mb-6 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-charcoal/70">Nombre:</span>
+                <span className="font-semibold text-charcoal">{formData.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-charcoal/70">Invitados:</span>
+                <span className="font-semibold text-charcoal">{formData.guests}</span>
+              </div>
+              {formData.message && (
+                <div className="pt-2 border-t border-eucalyptus/20">
+                  <span className="text-charcoal/70 block mb-1">Mensaje:</span>
+                  <p className="text-sm text-charcoal italic">"{formData.message}"</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-3">
+              <Button
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-charcoal border-0"
+                disabled={isLoading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading}
+                className="flex-1 bg-eucalyptus hover:bg-eucalyptus/90 text-white"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Enviando...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Heart className="w-4 h-4" />
+                    Confirmar
+                  </div>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Enhanced Gallery */}
       <section id="gallery" className="py-32 bg-gradient-to-b from-eucalyptus/5 to-champagne/5">
