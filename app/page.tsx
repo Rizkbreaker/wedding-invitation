@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { MapPin, Clock, Calendar, Heart, Camera, Gift, Users, Sparkles, ChevronDown, Star, Flower2, Copy, CheckCircle, Navigation } from 'lucide-react'
 import Image from 'next/image'
+import { useToast } from '@/hooks/use-toast'
 
 interface TimeLeft {
   days: number
@@ -78,38 +79,58 @@ export default function WeddingInvitation() {
     }
   }, [weddingDate])
 
+  const { toast } = useToast()
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     
     try {
-      // Prepare data for Google Sheets
-      const submissionData = {
-        Fecha: new Date().toLocaleString('es-AR', {
-          timeZone: 'America/Argentina/Buenos_Aires',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        Nombre: formData.name,
-        Invitados: formData.guests,
-        Mensaje: formData.message || 'Sin mensaje'
+      // Basic client-side validation
+      if (!formData.name.trim()) {
+        toast({
+          title: "Error de validación",
+          description: "Por favor ingresa tu nombre completo.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
       }
 
-      // Send to Google Sheets via Sheetdb
-      const response = await fetch('https://sheetdb.io/api/v1/nmsosp25q4bz3', {
+      if (Number(formData.guests) < 1 || Number(formData.guests) > 10) {
+        toast({
+          title: "Error de validación",
+          description: "El número de invitados debe ser entre 1 y 10.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      // Send to our internal API
+      const response = await fetch('/api/rsvp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(submissionData)
+        body: JSON.stringify({
+          Nombre: formData.name,
+          Invitados: formData.guests,
+          Mensaje: formData.message
+        })
       })
+
+      const result = await response.json()
 
       if (response.ok) {
         setIsLoading(false)
         setIsSubmitted(true)
+        
+        // Show success toast
+        toast({
+          title: "¡Confirmación enviada! 💕",
+          description: `Gracias ${result.data.nombre}! Esperamos verte con ${result.data.invitados} invitado${Number(result.data.invitados) > 1 ? 's' : ''} en nuestro día especial.`,
+        })
         
         // Reset after celebration
         setTimeout(() => {
@@ -117,13 +138,18 @@ export default function WeddingInvitation() {
           setFormData({ name: '', guests: '1', message: '' })
         }, 5000)
       } else {
-        throw new Error('Error al enviar confirmación')
+        throw new Error(result.error || 'Error al enviar confirmación')
       }
     } catch (error) {
       console.error('Error:', error)
       setIsLoading(false)
-      // You could add error handling here
-      alert('Hubo un error al enviar tu confirmación. Por favor intenta nuevamente.')
+      
+      // Show error toast
+      toast({
+        title: "Error al enviar confirmación",
+        description: error instanceof Error ? error.message : "Hubo un problema al procesar tu solicitud. Por favor intenta nuevamente.",
+        variant: "destructive",
+      })
     }
   }
 

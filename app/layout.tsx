@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Quicksand, Poppins } from 'next/font/google'; // Importamos las nuevas fuentes
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -30,7 +31,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${quicksand.variable} ${poppins.variable}`}>
-      <body className={poppins.className}>{children}</body>
+      <body className={poppins.className}>
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }
