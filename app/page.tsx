@@ -82,17 +82,49 @@ export default function WeddingInvitation() {
     e.preventDefault()
     setIsLoading(true)
     
-    // Simulate API call with elegant loading
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIsLoading(false)
-    setIsSubmitted(true)
-    
-    // Reset after celebration
-    setTimeout(() => {
-      setIsSubmitted(false)
-      setFormData({ name: '', guests: '1', message: '' })
-    }, 5000)
+    try {
+      // Prepare data for Google Sheets
+      const submissionData = {
+        Fecha: new Date().toLocaleString('es-AR', {
+          timeZone: 'America/Argentina/Buenos_Aires',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        Nombre: formData.name,
+        Invitados: formData.guests,
+        Mensaje: formData.message || 'Sin mensaje'
+      }
+
+      // Send to Google Sheets via Sheetdb
+      const response = await fetch('https://sheetdb.io/api/v1/nmsosp25q4bz3', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData)
+      })
+
+      if (response.ok) {
+        setIsLoading(false)
+        setIsSubmitted(true)
+        
+        // Reset after celebration
+        setTimeout(() => {
+          setIsSubmitted(false)
+          setFormData({ name: '', guests: '1', message: '' })
+        }, 5000)
+      } else {
+        throw new Error('Error al enviar confirmación')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      setIsLoading(false)
+      // You could add error handling here
+      alert('Hubo un error al enviar tu confirmación. Por favor intenta nuevamente.')
+    }
   }
 
   const scrollToSection = (id: string) => {
