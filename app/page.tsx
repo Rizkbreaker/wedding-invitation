@@ -516,7 +516,7 @@ END:VCALENDAR`
             <div className="space-y-8 order-2 lg:order-1">
               <div className="space-y-6 text-lg leading-relaxed">
                 <p className="transform hover:translate-x-2 transition-transform duration-300">
-                  Hoy, queremos celebrar este nuevo capítulo junto a las personas que más amamos. Cada detalle ha sido pensado para reflejar nuestra historia única y el futuro que construiremos juntos.
+                  Hoy, queremos celebrar este nuevo capítulo que se asoma junto a todas las personas que amamos. Por eso queremos que estés ahí y que seas parte de este momento.
                 </p>
               </div>
             </div>
