@@ -38,6 +38,8 @@ interface RSVPData {
   Nombre: string
   Invitados: string
   Mensaje: string
+  Asiste_Civil: string
+  Asiste_Almuerzo: string
 }
 
 function validateRSVPData(data: any): { isValid: boolean; errors: string[] } {
@@ -53,6 +55,11 @@ function validateRSVPData(data: any): { isValid: boolean; errors: string[] } {
   
   if (data.Mensaje && typeof data.Mensaje === 'string' && data.Mensaje.length > 500) {
     errors.push('El mensaje no puede exceder 500 caracteres')
+  }
+  
+  // Validate event selection - at least one event must be selected
+  if (!data.attendCivil && !data.attendLunch) {
+    errors.push('Debes seleccionar al menos un evento')
   }
   
   return {
@@ -99,7 +106,9 @@ export async function POST(request: NextRequest) {
       }),
       Nombre: sanitizeInput(body.Nombre),
       Invitados: String(Number(body.Invitados)), // Ensure it's a valid number
-      Mensaje: body.Mensaje ? sanitizeInput(body.Mensaje) : 'Sin mensaje'
+      Mensaje: body.Mensaje ? sanitizeInput(body.Mensaje) : 'Sin mensaje',
+      Asiste_Civil: body.attendCivil ? 'Sí' : 'No',
+      Asiste_Almuerzo: body.attendLunch ? 'Sí' : 'No'
     }
     
     // Get SheetDB URL from environment variable

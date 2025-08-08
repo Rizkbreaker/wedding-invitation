@@ -22,7 +22,9 @@ export default function WeddingInvitation() {
   const [formData, setFormData] = useState({
     name: '',
     guests: '1',
-    message: ''
+    message: '',
+    attendCivil: false,
+    attendLunch: false
   })
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -31,12 +33,14 @@ export default function WeddingInvitation() {
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     guests: '',
-    message: ''
+    message: '',
+    events: ''
   })
   const [fieldValid, setFieldValid] = useState({
     name: false,
     guests: true,
-    message: true
+    message: true,
+    events: false
   })
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [copiedCVU, setCopiedCVU] = useState(false)
@@ -112,7 +116,7 @@ export default function WeddingInvitation() {
   const validateGuests = (guests: string) => {
     const num = Number(guests)
     if (isNaN(num) || num < 1 || num > 10) {
-      setFieldErrors(prev => ({ ...prev, guests: 'Debe ser entre 1 y 10 invitados' }))
+      setFieldErrors(prev => ({ ...prev, guests: 'Tiene que ser entre 1 y 10 invitados' }))
       setFieldValid(prev => ({ ...prev, guests: false }))
       return false
     }
@@ -132,6 +136,17 @@ export default function WeddingInvitation() {
     return true
   }
 
+  const validateEvents = (attendCivil: boolean, attendLunch: boolean) => {
+    if (!attendCivil && !attendLunch) {
+      setFieldErrors(prev => ({ ...prev, events: 'Debés seleccionar al menos un evento' }))
+      setFieldValid(prev => ({ ...prev, events: false }))
+      return false
+    }
+    setFieldErrors(prev => ({ ...prev, events: '' }))
+    setFieldValid(prev => ({ ...prev, events: true }))
+    return true
+  }
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -139,8 +154,9 @@ export default function WeddingInvitation() {
     const nameValid = validateName(formData.name)
     const guestsValid = validateGuests(formData.guests)
     const messageValid = validateMessage(formData.message)
+    const eventsValid = validateEvents(formData.attendCivil, formData.attendLunch)
     
-    if (nameValid && guestsValid && messageValid) {
+    if (nameValid && guestsValid && messageValid && eventsValid) {
       setShowConfirmModal(true)
     }
   }
@@ -180,7 +196,9 @@ export default function WeddingInvitation() {
         body: JSON.stringify({
           Nombre: formData.name,
           Invitados: formData.guests,
-          Mensaje: formData.message
+          Mensaje: formData.message,
+          attendCivil: formData.attendCivil,
+          attendLunch: formData.attendLunch
         })
       })
 
@@ -216,16 +234,23 @@ export default function WeddingInvitation() {
           console.log('Analytics tracking failed:', error)
         }
         
-        // Show success toast
+        // Show success toast with personalized message based on selected events
+        const eventsText = []
+        if (formData.attendCivil) eventsText.push('la ceremonia civil (12:30 hs)')
+        if (formData.attendLunch) eventsText.push('la celebración almuerzo (14:00 hs)')
+        const eventsDescription = eventsText.length === 2 
+          ? `en ${eventsText[0]} y ${eventsText[1]}`
+          : `en ${eventsText[0]}`
+        
         toast({
-          title: "¡Confirmación enviada! 💕",
-          description: `Gracias ${result.data.nombre}! Esperamos verte con ${result.data.invitados} invitado${Number(result.data.invitados) > 1 ? 's' : ''} en nuestro día especial.`,
+          title: "¡Confirmación enviada! ",
+          description: `Gracias ${result.data.nombre}! Esperamos verte con ${result.data.invitados} invitado${Number(result.data.invitados) > 1 ? 's' : ''} ${eventsDescription}. ¡Será un día inolvidable!`,
         })
         
         // Reset after celebration
         setTimeout(() => {
           setIsSubmitted(false)
-          setFormData({ name: '', guests: '1', message: '' })
+          setFormData({ name: '', guests: '1', message: '', attendCivil: false, attendLunch: false })
         }, 5000)
       } else {
         throw new Error(result.error || 'Error al enviar confirmación')
@@ -263,43 +288,129 @@ export default function WeddingInvitation() {
   }
 
   const generateCalendarEvent = () => {
-    const startDate = '20251007T123000' // October 7, 2025 at 12:30
-    const endDate = '20251008T020000'   // October 8, 2025 at 02:00 (estimated end)
+    // Generate calendar events based on confirmed RSVP events
+    let events = []
     
-    const icsContent = `BEGIN:VCALENDAR
+    if (formData.attendCivil) {
+      events.push({
+        startDate: '20251007T123000', // October 7, 2025 at 12:30
+        endDate: '20251007T133000',   // October 7, 2025 at 13:30 (1 hour)
+        summary: 'Ceremonia Civil - Boda Natalia & Jan ⚖️',
+        description: '¡Celebramos nuestro amor en la ceremonia civil! Te esperamos en este momento tan especial.',
+        filename: 'ceremonia-civil-natalia-jan.ics'
+      })
+    }
+    
+    if (formData.attendLunch) {
+      events.push({
+        startDate: '20251007T140000', // October 7, 2025 at 14:00
+        endDate: '20251008T020000',   // October 8, 2025 at 02:00 (estimated end)
+        summary: 'Celebración Almuerzo - Boda Natalia & Jan 🍽️',
+        description: '¡Celebramos nuestro amor con un almuerzo especial! Te esperamos para compartir este momento único.',
+        filename: 'almuerzo-natalia-jan.ics'
+      })
+    }
+    
+    // Safety check: if no events selected, don't generate calendar
+    if (events.length === 0) {
+      toast({
+        title: "No hay eventos seleccionados",
+        description: "Primero confirmá tu asistencia a los eventos.",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    // If both events are selected, create a combined calendar file
+    if (formData.attendCivil && formData.attendLunch) {
+      const combinedContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Natalia & Jan Wedding//ES
+BEGIN:VEVENT
+UID:${Date.now()}-civil@naty-jan-wedding.com
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTSTART:20251007T123000
+DTEND:20251007T133000
+SUMMARY:Ceremonia Civil - Boda Natalia & Jan ⚖️
+DESCRIPTION:¡Celebramos nuestro amor en la ceremonia civil! Te esperamos en este momento tan especial.
+LOCATION:Subsede Comunal 11
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:Recordatorio: Ceremonia Civil mañana
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:${Date.now()}-lunch@naty-jan-wedding.com
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTSTART:20251007T140000
+DTEND:20251008T020000
+SUMMARY:Celebración Almuerzo - Boda Natalia & Jan 🍽️
+DESCRIPTION:¡Celebramos nuestro amor con un almuerzo especial! Te esperamos para compartir este momento único.
+LOCATION:Salón Los Jardines
+STATUS:CONFIRMED
+SEQUENCE:0
+BEGIN:VALARM
+TRIGGER:-P1D
+DESCRIPTION:Recordatorio: Celebración Almuerzo mañana
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+END:VCALENDAR`
+      
+      const blob = new Blob([combinedContent], { type: 'text/calendar;charset=utf-8' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = 'boda-completa-natalia-jan.ics'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(link.href)
+      
+      toast({
+        title: "¡Eventos agregados! 📅",
+        description: "Se descargaron ambos eventos. Ábrelo para agregarlos a tu calendario.",
+      })
+    } else {
+      // Create single event
+      const event = events[0]
+      const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Natalia & Jan Wedding//ES
 BEGIN:VEVENT
 UID:${Date.now()}@naty-jan-wedding.com
 DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
-DTSTART:${startDate}
-DTEND:${endDate}
-SUMMARY:Boda de Natalia & Jan 💕
-DESCRIPTION:¡Celebremos juntos este día tan especial! Boda de Natalia y Jan.\\n\\nUbicación: Salón de Eventos\\nHora: 12:30 hs\\n\\n¡Te esperamos con mucha alegría!
-LOCATION:Salón de Eventos - Dirección por confirmar
+DTSTART:${event.startDate}
+DTEND:${event.endDate}
+SUMMARY:${event.summary}
+DESCRIPTION:${event.description}
+LOCATION:${formData.attendCivil ? 'Subsede Comunal 11' : 'Salón Los Jardines'}
 STATUS:CONFIRMED
 SEQUENCE:0
 BEGIN:VALARM
 TRIGGER:-P1D
-DESCRIPTION:Recordatorio: Boda de Natalia & Jan mañana
+DESCRIPTION:Recordatorio: ${event.summary} mañana
 ACTION:DISPLAY
 END:VALARM
 END:VEVENT
 END:VCALENDAR`
 
-    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = 'boda-natalia-jan.ics'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(link.href)
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' })
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = event.filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(link.href)
 
-    toast({
-      title: "¡Evento agregado! 📅",
-      description: "El evento se ha descargado. Ábrelo para agregarlo a tu calendario.",
-    })
+      toast({
+        title: "¡Evento agregado! 📅",
+        description: "El evento se ha descargado. Abrilo para agregarlo a tu calendario.",
+      })
+    }
   }
 
   const FloatingElements = () => (
@@ -483,14 +594,6 @@ END:VCALENDAR`
             <p className="text-xl text-eucalyptus font-medium">
               ¡Nos casamos el 7 de Octubre de 2025 a las 12:30 hs!
             </p>
-            
-            <Button
-              onClick={generateCalendarEvent}
-              className="bg-champagne hover:bg-champagne/90 text-charcoal font-semibold px-8 py-3 rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg mx-auto flex items-center gap-2"
-            >
-              <Calendar className="w-5 h-5" />
-              Agregar al Calendario
-            </Button>
           </div>
         </div>
       </section>
@@ -702,8 +805,8 @@ END:VCALENDAR`
               </div>
               <h3 className="font-poppins text-3xl text-eucalyptus mb-6">Con amor y gratitud</h3>
               <p className="text-xl text-charcoal mb-8 leading-relaxed max-w-3xl mx-auto">
-                Tu presencia es nuestro regalo más preciado. Si deseas obsequiarnos algo especial, 
-                puedes hacerlo a través de una transferencia bancaria.
+                Tu presencia es nuestro regalo más preciado. Si deseás obsequiarnos algo especial, 
+                podés hacerlo a través de una transferencia bancaria.
               </p>
 
               {/* CVU Information */}
@@ -782,10 +885,10 @@ END:VCALENDAR`
       {/* Enhanced RSVP - Simplified */}
       <section id="rsvp" className="py-32 px-4 max-w-5xl mx-auto">
         <div className="text-center mb-20">
-          <h2 className="font-poppins text-4xl md:text-5xl font-bold text-eucalyptus mb-6">Confirma tu Asistencia 💌</h2>
+          <h2 className="font-poppins text-4xl md:text-5xl font-bold text-eucalyptus mb-6">Confirmá tu Asistencia 💌</h2>
           <div className="w-32 h-1 bg-gradient-to-r from-transparent via-champagne to-transparent mx-auto mb-6"></div>
           <p className="text-xl text-charcoal mb-2">Tu presencia es el regalo más importante para nosotros</p>
-          <p className="text-eucalyptus font-medium">Por favor, confirma antes del 15 de septiembre</p>
+          <p className="text-eucalyptus font-medium">Por favor, confirmá antes del 15 de septiembre</p>
         </div>
 
         <Card className="bg-white/90 backdrop-blur-xl border-0 shadow-2xl overflow-hidden">
@@ -798,7 +901,30 @@ END:VCALENDAR`
                 </div>
                 <h3 className="font-poppins text-4xl text-eucalyptus mb-4">¡Gracias!</h3>
                 <p className="text-xl text-charcoal mb-6">Hemos recibido tu confirmación con mucha alegría</p>
-                <p className="text-eucalyptus">¡Esperamos verte en nuestro día especial!</p>
+                <p className="text-eucalyptus mb-8">¡Esperamos verte en nuestro día especial!</p>
+                
+                {/* Calendar Button - Only show if at least one event is selected */}
+                {(formData.attendCivil || formData.attendLunch) && (
+                  <div className="animate-fade-in" style={{ animationDelay: '1s' }}>
+                    <div className="bg-eucalyptus/5 rounded-2xl p-6 mb-8 max-w-md mx-auto">
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <Calendar className="w-5 h-5 text-eucalyptus" />
+                        <span className="text-eucalyptus font-semibold">No te olvides de la fecha</span>
+                      </div>
+                      <p className="text-sm text-charcoal/70 mb-4">
+                        Agrega {formData.attendCivil && formData.attendLunch ? 'los eventos' : 'el evento'} a tu calendario para no perderte nuestro día especial
+                      </p>
+                      <Button
+                        onClick={generateCalendarEvent}
+                        className="bg-eucalyptus hover:bg-eucalyptus/90 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                      >
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Agregar al Calendario
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex justify-center gap-2 mt-8">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-6 h-6 text-champagne animate-twinkle" style={{ animationDelay: `${i * 0.2}s` }} />
@@ -877,7 +1003,7 @@ END:VCALENDAR`
                     className={`border-2 focus:border-eucalyptus rounded-xl px-4 py-3 text-lg transition-all duration-300 hover:border-eucalyptus/50 min-h-[120px] ${
                       fieldErrors.message ? 'border-red-400 focus:border-red-500' : 'border-eucalyptus/30'
                     }`}
-                    placeholder="Comparte tus buenos deseos para este día especial..."
+                    placeholder="Compartí tus buenos deseos para este día especial..."
                   />
                   <div className="flex justify-between items-center mt-1">
                     {fieldErrors.message && (
@@ -892,10 +1018,81 @@ END:VCALENDAR`
                   </div>
                 </div>
                 
+                {/* Event Selection */}
+                <div className="space-y-4">
+                  <label className="block text-sm font-semibold text-charcoal mb-4">
+                    ¿A qué eventos asistirás? *
+                  </label>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Civil Ceremony */}
+                    <div className="bg-white/80 rounded-xl p-6 border-2 transition-all duration-300 hover:border-eucalyptus/50 cursor-pointer"
+                         onClick={() => {
+                           const newValue = !formData.attendCivil
+                           setFormData({...formData, attendCivil: newValue})
+                           validateEvents(newValue, formData.attendLunch)
+                         }}>
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all duration-300 ${
+                          formData.attendCivil ? 'bg-eucalyptus border-eucalyptus' : 'border-eucalyptus/30'
+                        }`}>
+                          {formData.attendCivil && (
+                            <CheckCircle className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-2xl">⚖️</span>
+                            <h4 className="font-semibold text-eucalyptus">Ceremonia Civil</h4>
+                          </div>
+                          <p className="text-sm text-charcoal/70">12:30 hs</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Lunch Celebration */}
+                    <div className="bg-white/80 rounded-xl p-6 border-2 transition-all duration-300 hover:border-eucalyptus/50 cursor-pointer"
+                         onClick={() => {
+                           const newValue = !formData.attendLunch
+                           setFormData({...formData, attendLunch: newValue})
+                           validateEvents(formData.attendCivil, newValue)
+                         }}>
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all duration-300 ${
+                          formData.attendLunch ? 'bg-eucalyptus border-eucalyptus' : 'border-eucalyptus/30'
+                        }`}>
+                          {formData.attendLunch && (
+                            <CheckCircle className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-2xl">🍽️</span>
+                            <h4 className="font-semibold text-eucalyptus">Celebración Almuerzo</h4>
+                          </div>
+                          <p className="text-sm text-charcoal/70">14:00 hs</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {fieldErrors.events && (
+                    <p className="text-red-500 text-sm mt-2 animate-fade-in flex items-center gap-1">
+                      <span className="text-red-500">⚠️</span>
+                      {fieldErrors.events}
+                    </p>
+                  )}
+                  {fieldValid.events && !fieldErrors.events && (
+                    <p className="text-green-600 text-sm mt-2 animate-fade-in flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" /> 
+                      Eventos seleccionados correctamente
+                    </p>
+                  )}
+                </div>
+                
                 <div className="text-center pt-6">
                   <Button 
                     type="submit"
-                    disabled={isLoading || !fieldValid.name || !fieldValid.guests || !fieldValid.message}
+                    disabled={isLoading || !fieldValid.name || !fieldValid.guests || !fieldValid.message || !fieldValid.events}
                     className="bg-eucalyptus hover:bg-eucalyptus/90 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all duration-500 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px]"
                   >
                     <div className="flex items-center gap-2">
@@ -930,6 +1127,23 @@ END:VCALENDAR`
               <div className="flex justify-between">
                 <span className="text-charcoal/70">Invitados:</span>
                 <span className="font-semibold text-charcoal">{formData.guests}</span>
+              </div>
+              <div className="pt-2 border-t border-eucalyptus/20">
+                <span className="text-charcoal/70 block mb-2">Eventos seleccionados:</span>
+                <div className="space-y-1">
+                  {formData.attendCivil && (
+                    <div className="flex items-center gap-2 text-sm text-eucalyptus">
+                      <span>⚖️</span>
+                      <span>Ceremonia Civil (12:30 hs)</span>
+                    </div>
+                  )}
+                  {formData.attendLunch && (
+                    <div className="flex items-center gap-2 text-sm text-eucalyptus">
+                      <span>🍽️</span>
+                      <span>Celebración Almuerzo (14:00 hs)</span>
+                    </div>
+                  )}
+                </div>
               </div>
               {formData.message && (
                 <div className="pt-2 border-t border-eucalyptus/20">
