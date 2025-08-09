@@ -537,7 +537,7 @@ END:VCALENDAR`
           </p>
           {/* Texto inferior */}
           <p className="font-poppins font-normal text-base mb-12 opacity-90 text-shadow-lg animate-fade-in-up" style={{ animationDelay: '2.5s' }}>
-            💖 Tu presencia hará especial nuestro día 💖
+            💖 Sumate a nosotros en este día único 💖
           </p>
           
           <Button 
@@ -619,7 +619,7 @@ END:VCALENDAR`
             <div className="space-y-8 order-2 lg:order-1">
               <div className="space-y-6 text-lg leading-relaxed">
                 <p className="transform hover:translate-x-2 transition-transform duration-300">
-                  Hoy, queremos celebrar este nuevo capítulo que se asoma junto a todas las personas que amamos. Por eso queremos que estés ahí y que seas parte de este momento.
+                  Hoy, queremos escribir el primer capítulo de nuestra nueva vida junto a todas las personas que amamos. Por eso queremos que estés ahí y seas testigo de nuestro compromiso eterno.
                 </p>
               </div>
             </div>
@@ -1191,11 +1191,11 @@ END:VCALENDAR`
             <div className="w-32 h-1 bg-gradient-to-r from-transparent via-champagne to-transparent mx-auto"></div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {/* Imágenes de KennysGifs al final de la galería */}
-            <div className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 justify-items-center max-w-4xl mx-auto">
+            {/* KennysGifs Gallery Images */}
+            <div className="relative w-80 h-80 overflow-hidden rounded-2xl group cursor-pointer">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1.jpg-BQq8cYlMKbJ3gwevekKnu1fM9bvPd0.jpeg"
+                src="/kennygifs_1.jpg"
                 alt="Natalia y Jan - Momentos Especiales"
                 fill
                 className="object-cover transition-all duration-700 group-hover:scale-125"
@@ -1208,9 +1208,9 @@ END:VCALENDAR`
               </div>
             </div>
             
-            <div className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer">
+            <div className="relative w-80 h-80 overflow-hidden rounded-2xl group cursor-pointer">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/2.jpg-vvMFciwlN3SnUrC56GBEg9ruwaaFwS.jpeg"
+                src="/kennygifs_2.jpg"
                 alt="Natalia y Jan - Momentos Especiales"
                 fill
                 className="object-cover transition-all duration-700 group-hover:scale-125"
@@ -1223,9 +1223,9 @@ END:VCALENDAR`
               </div>
             </div>
             
-            <div className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer">
+            <div className="relative w-80 h-80 overflow-hidden rounded-2xl group cursor-pointer">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/3.jpg-un8R3C6xB0M4Cmkx25Jm2zpAliKrAh.jpeg"
+                src="/kennygifs_3.jpg"
                 alt="Natalia y Jan - Momentos Especiales"
                 fill
                 className="object-cover transition-all duration-700 group-hover:scale-125"
@@ -1237,11 +1237,11 @@ END:VCALENDAR`
                 </div>
               </div>
             </div>
-            
-            <div className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer">
+
+            <div className="relative w-80 h-80 overflow-hidden rounded-2xl group cursor-pointer">
               <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/kennygifs_kiss_desmayo-TE0xKcLriZkrBDZOhQsnM4I0bmnXaJ.gif"
-                alt="Natalia y Jan - Beso de Amor"
+                src="/kennygifs_4.jpg"
+                alt="Natalia y Jan - Momentos Especiales"
                 fill
                 className="object-cover transition-all duration-700 group-hover:scale-125"
               />
@@ -1252,6 +1252,7 @@ END:VCALENDAR`
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
@@ -1265,14 +1266,28 @@ END:VCALENDAR`
         
         <div className="relative z-10">
           <div className="font-poppins text-5xl mb-6 text-champagne">Natalia & Jan</div>
+          
+          {/* GIF romántico centrado */}
+          <div className="flex justify-center mb-6">
+            <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-champagne/30 shadow-2xl hover:border-champagne/60 transition-all duration-500 hover:scale-110">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/kennygifs_kiss_desmayo-TE0xKcLriZkrBDZOhQsnM4I0bmnXaJ.gif"
+                alt="Natalia y Jan - Beso de Amor"
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          </div>
+          
           <p className="text-2xl mb-6 text-white/90">7 de Octubre, 2025</p>
           <div className="flex items-center justify-center gap-6 mb-8">
             <div className="w-20 h-px bg-gradient-to-r from-transparent to-champagne"></div>
             <Heart className="w-8 h-8 text-champagne animate-heartbeat" />
             <div className="w-20 h-px bg-gradient-to-l from-transparent to-champagne"></div>
           </div>
-          <p className="text-lg opacity-80 mb-4">Con amor, esperamos celebrar junto a ustedes</p>
-          <p className="text-sm opacity-60">Este día será aún más especial con tu presencia</p>
+          <p className="text-lg opacity-80 mb-4">Con el corazón lleno de amor, los esperamos en el día más importante de nuestras vidas</p>
+          <p className="text-sm opacity-60">No hay regalo más valioso que compartir este momento con quienes amamos</p>
         </div>
       </footer>
     </div>
