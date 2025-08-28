@@ -646,7 +646,6 @@ END:VCALENDAR`
           <div className="text-center mb-20">
             <h2 className="font-poppins text-4xl md:text-5xl font-bold text-eucalyptus mb-6">Detalles del Evento 📍</h2>
             <div className="w-32 h-1 bg-gradient-to-r from-transparent via-champagne to-transparent mx-auto"></div>
-            <p className="text-eucalyptus/70 mt-4">Momentos que recordaremos para siempre</p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
@@ -672,7 +671,7 @@ END:VCALENDAR`
                   <div className="w-16 h-16 bg-gradient-to-br from-eucalyptus/20 to-eucalyptus/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
                     <Heart className="w-8 h-8 text-eucalyptus" />
                   </div>
-                  <h3 className="font-poppins text-3xl text-eucalyptus mb-6">Ceremonia</h3>
+                  <h3 className="font-poppins text-3xl text-eucalyptus mb-6">Ceremonia Civil</h3>
                   <div className="space-y-4 text-charcoal mb-6">
                     <div className="flex items-center justify-center gap-3 group/item hover:text-eucalyptus transition-colors">
                       <Calendar className="w-6 h-6 text-champagne group-hover/item:scale-110 transition-transform" />
@@ -747,12 +746,6 @@ END:VCALENDAR`
             </Card>
           </div>
 
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg">
-              <Clock className="w-5 h-5 text-eucalyptus" />
-              <p className="text-eucalyptus font-medium">Favor de llegar 15 minutos antes de la ceremonia</p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -767,7 +760,7 @@ END:VCALENDAR`
           <div className="absolute inset-0 bg-gradient-to-br from-eucalyptus/5 via-transparent to-champagne/5"></div>
           <CardContent className="p-16 relative z-10 text-center">
             <div className="space-y-8">
-              <div className="text-3xl text-eucalyptus font-poppins font-medium leading-relaxed">
+              <div className="text-3xl text-eucalyptus font-poppins font-medium leading-relaxed text-center">
                 Elegante sport ¡Sé vos!
               </div>
             </div>
@@ -795,9 +788,45 @@ END:VCALENDAR`
 
               {/* CVU Information */}
               <div className="bg-eucalyptus/5 rounded-2xl p-8 mb-8 max-w-2xl mx-auto">
-                <h4 className="font-poppins text-2xl text-eucalyptus mb-6">Datos para Transferencia</h4>
+                <h4 className="font-poppins text-2xl text-eucalyptus mb-6">Datos de la cuenta</h4>
                 
                 <div className="space-y-6">
+                  {/* Titular */}
+                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
+                    <div className="text-left">
+                      <p className="text-sm text-charcoal/70 mb-1">Titular</p>
+                      <p className="text-base sm:text-lg font-semibold text-charcoal">Natalia Estefania Villagra</p>
+                    </div>
+                  </div>
+
+                  {/* CVU */}
+                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="text-left flex-1 min-w-0">
+                        <p className="text-sm text-charcoal/70 mb-1">CVU</p>
+                        <p className="text-base sm:text-lg font-semibold text-charcoal break-all">0000003100038534588857</p>
+                      </div>
+                      <Button
+                        onClick={() => copyToClipboard('0000003100038534588857', 'cvu')}
+                        className="bg-champagne/10 hover:bg-eucalyptus hover:text-white text-eucalyptus border-0 transition-all duration-300 shrink-0 w-full sm:w-auto"
+                      >
+                        {copiedCVU ? (
+                          <><CheckCircle className="w-4 h-4 mr-2" /> Copiado</>
+                        ) : (
+                          <><Copy className="w-4 h-4 mr-2" /> Copiar</>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Mercado Pago */}
+                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
+                    <div className="text-left">
+                      <p className="text-sm text-charcoal/70 mb-1">Banco</p>
+                      <p className="text-base sm:text-lg font-semibold text-charcoal">Mercado Pago</p>
+                    </div>
+                  </div>
+
                   {/* Alias */}
                   <div className="bg-white/80 rounded-xl p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -1176,6 +1205,14 @@ END:VCALENDAR`
               )}
             </div>
             
+            {/* Mensaje de puntualidad - Solo si asiste a ceremonia civil */}
+            {formData.attendCivil && (
+              <div className="flex items-center justify-center gap-2 text-xs text-green-600 mb-6 bg-green-50 rounded-lg py-3 px-4">
+                <span>✅</span>
+                <span className="font-medium">Favor de llegar 15 minutos antes</span>
+              </div>
+            )}
+            
             <div className="flex gap-3">
               <Button
                 onClick={() => setShowConfirmModal(false)}
@@ -1309,8 +1346,6 @@ END:VCALENDAR`
             <Heart className="w-8 h-8 text-champagne animate-heartbeat" />
             <div className="w-20 h-px bg-gradient-to-l from-transparent to-champagne"></div>
           </div>
-          <p className="text-lg opacity-80 mb-4">Con el corazón lleno de amor, los esperamos en el día más importante de nuestras vidas</p>
-          <p className="text-sm opacity-60">No hay regalo más valioso que compartir este momento con quienes amamos</p>
         </div>
       </footer>
     </div>
