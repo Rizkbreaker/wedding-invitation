@@ -40,6 +40,7 @@ interface RSVPData {
   Mensaje: string
   Asiste_Civil: string
   Asiste_Almuerzo: string
+  Limitaciones_Gastronomicas: string
 }
 
 function validateRSVPData(data: any): { isValid: boolean; errors: string[] } {
@@ -60,6 +61,13 @@ function validateRSVPData(data: any): { isValid: boolean; errors: string[] } {
   // Validate event selection - at least one event must be selected
   if (!data.attendCivil && !data.attendLunch) {
     errors.push('Debes seleccionar al menos un evento')
+  }
+  
+  // Validate dietary restrictions if attending lunch
+  if (data.attendLunch && data.dietaryRestrictions !== 'none' && 
+      ['allergies', 'other'].includes(data.dietaryRestrictions) && 
+      (!data.dietaryDetails || data.dietaryDetails.trim().length === 0)) {
+    errors.push('Debes especificar detalles de las limitaciones gastronómicas')
   }
   
   return {
@@ -94,6 +102,24 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // Format dietary restrictions for Google Sheets
+    const formatDietaryRestrictions = (attendLunch: boolean, dietaryRestrictions: string, dietaryDetails: string) => {
+      if (!attendLunch) return 'No aplica (no asiste al almuerzo)'
+      if (dietaryRestrictions === 'none') return 'Sin limitaciones'
+      
+      const dietaryLabels: { [key: string]: string } = {
+        'vegetarian': 'Vegetariano',
+        'vegan': 'Vegano',
+        'gluten_free': 'Sin gluten (celíaco)',
+        'lactose_free': 'Sin lactosa',
+        'allergies': 'Alergias alimentarias',
+        'other': 'Otras limitaciones'
+      }
+      
+      const label = dietaryLabels[dietaryRestrictions] || dietaryRestrictions
+      return dietaryDetails ? `${label}: ${dietaryDetails}` : label
+    }
+
     // Sanitize inputs
     const sanitizedData: RSVPData = {
       Fecha: new Date().toLocaleString('es-AR', {
@@ -108,7 +134,12 @@ export async function POST(request: NextRequest) {
       Invitados: String(Number(body.Invitados)), // Ensure it's a valid number
       Mensaje: body.Mensaje ? sanitizeInput(body.Mensaje) : 'Sin mensaje',
       Asiste_Civil: body.attendCivil ? 'Sí' : 'No',
-      Asiste_Almuerzo: body.attendLunch ? 'Sí' : 'No'
+      Asiste_Almuerzo: body.attendLunch ? 'Sí' : 'No',
+      Limitaciones_Gastronomicas: formatDietaryRestrictions(
+        body.attendLunch, 
+        body.dietaryRestrictions || 'none', 
+        body.dietaryDetails ? sanitizeInput(body.dietaryDetails) : ''
+      )
     }
     
     // Get SheetDB URL from environment variable

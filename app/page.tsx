@@ -16,7 +16,7 @@ interface TimeLeft {
   seconds: number
 }
 
-export default function WeddingInvitation() {
+function WeddingInvitation() {
   const [isVisible, setIsVisible] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const [formData, setFormData] = useState({
@@ -24,7 +24,9 @@ export default function WeddingInvitation() {
     guests: '1',
     message: '',
     attendCivil: false,
-    attendLunch: false
+    attendLunch: false,
+    dietaryRestrictions: 'none',
+    dietaryDetails: ''
   })
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -34,13 +36,15 @@ export default function WeddingInvitation() {
     name: '',
     guests: '',
     message: '',
-    events: ''
+    events: '',
+    dietary: ''
   })
   const [fieldValid, setFieldValid] = useState({
     name: false,
     guests: true,
     message: true,
-    events: false
+    events: false,
+    dietary: true
   })
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [copiedCVU, setCopiedCVU] = useState(false)
@@ -74,7 +78,7 @@ export default function WeddingInvitation() {
       setScrollY(window.scrollY)
       
       // Detect active section
-      const sections = ['hero', 'countdown', 'story', 'details', 'dresscode', 'gifts', 'rsvp', 'gallery']
+      const sections = ['hero', 'countdown', 'details', 'dresscode', 'gifts', 'rsvp', 'gallery']
       const current = sections.find(section => {
         const element = document.getElementById(section)
         if (element) {
@@ -95,6 +99,17 @@ export default function WeddingInvitation() {
   }, [weddingDate])
 
   const { toast } = useToast()
+
+  // Dietary restrictions options
+  const dietaryOptions = [
+    { id: 'none', label: 'Sin limitaciones', icon: '✅' },
+    { id: 'vegetarian', label: 'Vegetariano', icon: '🥬' },
+    { id: 'vegan', label: 'Vegano', icon: '🌱' },
+    { id: 'gluten_free', label: 'Sin gluten (celíaco)', icon: '🚫🌾' },
+    { id: 'lactose_free', label: 'Sin lactosa', icon: '🚫🥛' },
+    { id: 'allergies', label: 'Alergias alimentarias', icon: '⚠️' },
+    { id: 'other', label: 'Otras limitaciones', icon: '📝' }
+  ]
 
   // Real-time validation functions
   const validateName = (name: string) => {
@@ -147,6 +162,24 @@ export default function WeddingInvitation() {
     return true
   }
 
+  const validateDietaryRestrictions = (attendLunch: boolean, dietaryRestrictions: string, dietaryDetails: string) => {
+    // Only validate if attending lunch
+    if (!attendLunch) {
+      return true // No validation needed if not attending lunch
+    }
+    
+    // If has dietary restrictions other than "none" but no details provided
+    if (dietaryRestrictions !== 'none' && ['allergies', 'other'].includes(dietaryRestrictions) && !dietaryDetails.trim()) {
+      setFieldErrors(prev => ({ ...prev, dietary: 'Por favor especificá los detalles de tu limitación alimentaria' }))
+      setFieldValid(prev => ({ ...prev, dietary: false }))
+      return false
+    }
+    
+    setFieldErrors(prev => ({ ...prev, dietary: '' }))
+    setFieldValid(prev => ({ ...prev, dietary: true }))
+    return true
+  }
+
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -155,8 +188,9 @@ export default function WeddingInvitation() {
     const guestsValid = validateGuests(formData.guests)
     const messageValid = validateMessage(formData.message)
     const eventsValid = validateEvents(formData.attendCivil, formData.attendLunch)
+    const dietaryValid = validateDietaryRestrictions(formData.attendLunch, formData.dietaryRestrictions, formData.dietaryDetails)
     
-    if (nameValid && guestsValid && messageValid && eventsValid) {
+    if (nameValid && guestsValid && messageValid && eventsValid && dietaryValid) {
       setShowConfirmModal(true)
     }
   }
@@ -198,7 +232,9 @@ export default function WeddingInvitation() {
           Invitados: formData.guests,
           Mensaje: formData.message,
           attendCivil: formData.attendCivil,
-          attendLunch: formData.attendLunch
+          attendLunch: formData.attendLunch,
+          dietaryRestrictions: formData.dietaryRestrictions,
+          dietaryDetails: formData.dietaryDetails
         })
       })
 
@@ -250,7 +286,7 @@ export default function WeddingInvitation() {
         // Reset after celebration
         setTimeout(() => {
           setIsSubmitted(false)
-          setFormData({ name: '', guests: '1', message: '', attendCivil: false, attendLunch: false })
+          setFormData({ name: '', guests: '1', message: '', attendCivil: false, attendLunch: false, dietaryRestrictions: 'none', dietaryDetails: '' })
         }, 5000)
       } else {
         throw new Error(result.error || 'Error al enviar confirmación')
@@ -463,7 +499,7 @@ END:VCALENDAR`
       
       {/* Enhanced Navigation Dots - Hidden on mobile */}
       <div className="fixed right-8 top-1/2 transform -translate-y-1/2 z-50 space-y-4 hidden lg:flex flex-col">
-        {['hero', 'countdown', 'story', 'details', 'dresscode', 'gifts', 'rsvp', 'gallery'].map((section, index) => (
+        {['hero', 'countdown', 'details', 'dresscode', 'gifts', 'rsvp', 'gallery'].map((section, index) => (
           <button
             key={section}
             onClick={() => scrollToSection(section)}
@@ -598,50 +634,6 @@ END:VCALENDAR`
         </div>
       </section>
 
-      {/* Enhanced Story Section */}
-      <section id="story" className="py-32 px-4 max-w-7xl mx-auto relative">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 right-10 text-9xl font-poppins text-eucalyptus transform rotate-12">Love</div>
-        </div>
-        
-        <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="text-center mb-20">
-            <div className="inline-block relative">
-              <h2 className="font-poppins text-4xl md:text-5xl font-bold text-eucalyptus mb-6 relative z-10">
-                Nuestra Historia 💕
-              </h2>
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-champagne to-transparent"></div>
-            </div>
-            <p className="text-eucalyptus/70 mt-4 italic">Un amor que trasciende el tiempo</p>
-          </div>
-          
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div className="space-y-8 order-2 lg:order-1">
-              <div className="space-y-6 text-lg leading-relaxed">
-                <p className="transform hover:translate-x-2 transition-transform duration-300">
-                  Hoy, queremos escribir el primer capítulo de nuestra nueva vida junto a todas las personas que amamos. Por eso queremos que estés ahí y seas testigo de nuestro compromiso eterno.
-                </p>
-              </div>
-            </div>
-            
-            <div className="relative order-1 lg:order-2">
-              <div className="relative group">
-                <div className="absolute -inset-4 bg-gradient-to-r from-champagne/20 to-eucalyptus/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
-                <Image
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/kennygifs_almorzando.jpg-vBJYnkOdvCBYgWOG8485hUFRhUadud.jpeg"
-                  alt="Natalia y Jan - Nuestra Historia"
-                  width={500}
-                  height={600}
-                  className="relative rounded-2xl shadow-2xl transform group-hover:scale-105 transition-all duration-700"
-                  style={{ width: 'auto', height: 'auto' }}
-                />
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-champagne/10 rounded-full blur-2xl"></div>
-                <div className="absolute -top-6 -left-6 w-24 h-24 bg-eucalyptus/10 rounded-full blur-xl"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Enhanced Event Details with Maps */}
       <section id="details" className="py-32 bg-gradient-to-b from-eucalyptus/5 to-champagne/5 relative overflow-hidden">
@@ -775,17 +767,9 @@ END:VCALENDAR`
           <div className="absolute inset-0 bg-gradient-to-br from-eucalyptus/5 via-transparent to-champagne/5"></div>
           <CardContent className="p-16 relative z-10 text-center">
             <div className="space-y-8">
-              <p className="text-2xl text-eucalyptus/80 leading-relaxed font-light">
-                Elegancia natural para un día especial...
-              </p>
-              
               <div className="text-3xl text-eucalyptus font-poppins font-medium leading-relaxed">
-                ¡sé vos, pero en tu versión más radiante! ✨
+                Elegante sport ¡Sé vos!
               </div>
-              
-              <p className="text-xl text-charcoal/80 leading-relaxed font-light">
-                Vení cómodo, vení auténtico, vení brillando :)
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -814,35 +798,15 @@ END:VCALENDAR`
                 <h4 className="font-poppins text-2xl text-eucalyptus mb-6">Datos para Transferencia</h4>
                 
                 <div className="space-y-6">
-                  {/* CVU */}
-                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                      <div className="text-left flex-1 min-w-0">
-                        <p className="text-sm text-charcoal/70 mb-1">CVU</p>
-                        <p className="text-base sm:text-lg font-mono font-semibold text-charcoal break-all">0000003100010000000001</p>
-                      </div>
-                      <Button
-                        onClick={() => copyToClipboard('0000003100010000000001', 'cvu')}
-                        className="bg-eucalyptus/10 hover:bg-eucalyptus hover:text-white text-eucalyptus border-0 transition-all duration-300 shrink-0 w-full sm:w-auto"
-                      >
-                        {copiedCVU ? (
-                          <><CheckCircle className="w-4 h-4 mr-2" /> Copiado</>
-                        ) : (
-                          <><Copy className="w-4 h-4 mr-2" /> Copiar</>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
                   {/* Alias */}
                   <div className="bg-white/80 rounded-xl p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                       <div className="text-left flex-1 min-w-0">
                         <p className="text-sm text-charcoal/70 mb-1">Alias</p>
-                        <p className="text-base sm:text-lg font-semibold text-charcoal break-all">NATALIA.JAN.BODA</p>
+                        <p className="text-base sm:text-lg font-semibold text-charcoal break-all">jan.nata.boda</p>
                       </div>
                       <Button
-                        onClick={() => copyToClipboard('NATALIA.JAN.BODA', 'alias')}
+                        onClick={() => copyToClipboard('jan.nata.boda', 'alias')}
                         className="bg-champagne/10 hover:bg-eucalyptus hover:text-white text-eucalyptus border-0 transition-all duration-300 shrink-0 w-full sm:w-auto"
                       >
                         {copiedAlias ? (
@@ -853,30 +817,12 @@ END:VCALENDAR`
                       </Button>
                     </div>
                   </div>
-
-                  {/* Additional Info */}
-                  <div className="bg-white/80 rounded-xl p-6">
-                    <div className="text-left space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-charcoal/70">Titular:</span>
-                        <span className="text-sm font-semibold text-charcoal">Jan Kowalski</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-charcoal/70">Banco:</span>
-                        <span className="text-sm font-semibold text-charcoal">Banco Nación</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-charcoal/70">CUIT:</span>
-                        <span className="text-sm font-semibold text-charcoal">20-12345678-9</span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              </div>
 
-              <p className="text-eucalyptus italic">
-                ¡Cualquier monto será recibido con muchísimo amor y gratitud!
-              </p>
+                <p className="text-eucalyptus italic">
+                  ¡Cualquier monto será recibido con muchísimo amor y gratitud!
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -1088,11 +1034,76 @@ END:VCALENDAR`
                     </p>
                   )}
                 </div>
+
+                {/* Dietary Restrictions Section - Only show if attending lunch */}
+                {formData.attendLunch && (
+                  <div className="space-y-4 animate-fade-in">
+                    <div className="border-t border-eucalyptus/20 pt-6">
+                      <h4 className="font-poppins text-xl text-eucalyptus mb-4 flex items-center gap-2">
+                        🍽️ Preferencias Gastronómicas
+                      </h4>
+                      <p className="text-charcoal/70 text-sm mb-4">
+                        Para ofrecerte la mejor experiencia culinaria, por favor indicanos si tenés alguna limitación alimentaria:
+                      </p>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        {dietaryOptions.map((option) => (
+                          <label
+                            key={option.id}
+                            className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all duration-300 ${
+                              formData.dietaryRestrictions === option.id
+                                ? 'border-eucalyptus bg-eucalyptus/10 text-eucalyptus'
+                                : 'border-gray-200 hover:border-eucalyptus/50 hover:bg-eucalyptus/5'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="dietaryRestrictions"
+                              value={option.id}
+                              checked={formData.dietaryRestrictions === option.id}
+                              onChange={(e) => setFormData(prev => ({ 
+                                ...prev, 
+                                dietaryRestrictions: e.target.value,
+                                dietaryDetails: e.target.value === 'none' ? '' : prev.dietaryDetails
+                              }))}
+                              className="sr-only"
+                            />
+                            <span className="text-lg">{option.icon}</span>
+                            <span className="font-medium text-sm">{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      {/* Details field - show if not "none" */}
+                      {formData.dietaryRestrictions !== 'none' && (
+                        <div className="animate-fade-in">
+                          <Textarea
+                            placeholder="Por favor, especificá detalles (ej: alergia a nueces, mariscos, etc.)"
+                            value={formData.dietaryDetails}
+                            onChange={(e) => setFormData(prev => ({ ...prev, dietaryDetails: e.target.value }))}
+                            className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-eucalyptus focus:ring-2 focus:ring-eucalyptus/20 transition-all duration-300 resize-none"
+                            rows={2}
+                            maxLength={200}
+                          />
+                          <p className="text-xs text-charcoal/50 mt-1">
+                            {formData.dietaryDetails.length}/200 caracteres
+                          </p>
+                          {fieldErrors.dietary && (
+                            <p className="text-red-500 text-sm mt-2 animate-fade-in flex items-center gap-1">
+                              <span className="text-red-500">⚠️</span>
+                              {fieldErrors.dietary}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="text-center pt-6">
                   <Button 
                     type="submit"
-                    disabled={isLoading || !fieldValid.name || !fieldValid.guests || !fieldValid.message || !fieldValid.events}
+                    disabled={isLoading || !fieldValid.name || !fieldValid.guests || !fieldValid.message || !fieldValid.events || !fieldValid.dietary}
                     className="bg-eucalyptus hover:bg-eucalyptus/90 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all duration-500 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px]"
                   >
                     <div className="flex items-center gap-2">
@@ -1145,6 +1156,18 @@ END:VCALENDAR`
                   )}
                 </div>
               </div>
+              {formData.attendLunch && formData.dietaryRestrictions !== 'none' && (
+                <div className="pt-2 border-t border-eucalyptus/20">
+                  <span className="text-charcoal/70 block mb-2">Limitaciones gastronómicas:</span>
+                  <div className="flex items-center gap-2 text-sm text-eucalyptus mb-1">
+                    <span>{dietaryOptions.find(opt => opt.id === formData.dietaryRestrictions)?.icon}</span>
+                    <span>{dietaryOptions.find(opt => opt.id === formData.dietaryRestrictions)?.label}</span>
+                  </div>
+                  {formData.dietaryDetails && (
+                    <p className="text-xs text-charcoal italic mt-1">"{formData.dietaryDetails}"</p>
+                  )}
+                </div>
+              )}
               {formData.message && (
                 <div className="pt-2 border-t border-eucalyptus/20">
                   <span className="text-charcoal/70 block mb-1">Mensaje:</span>
@@ -1293,3 +1316,5 @@ END:VCALENDAR`
     </div>
   )
 }
+
+export default WeddingInvitation
