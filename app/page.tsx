@@ -331,7 +331,7 @@ function WeddingInvitation() {
       events.push({
         startDate: '20251007T123000', // October 7, 2025 at 12:30
         endDate: '20251007T133000',   // October 7, 2025 at 13:30 (1 hour)
-        summary: 'Ceremonia Civil - Boda Natalia & Jan ⚖️',
+        summary: 'Ceremonia de Civil - Boda Natalia & Jan ⚖️',
         description: '¡Celebramos nuestro amor en la ceremonia civil! Te esperamos en este momento tan especial.',
         filename: 'ceremonia-civil-natalia-jan.ics'
       })
@@ -367,14 +367,14 @@ UID:${Date.now()}-civil@naty-jan-wedding.com
 DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 DTSTART:20251007T123000
 DTEND:20251007T133000
-SUMMARY:Ceremonia Civil - Boda Natalia & Jan ⚖️
+SUMMARY:Ceremonia de Civil - Boda Natalia & Jan ⚖️
 DESCRIPTION:¡Celebramos nuestro amor en la ceremonia civil! Te esperamos en este momento tan especial.
 LOCATION:Subsede Comunal 11
 STATUS:CONFIRMED
 SEQUENCE:0
 BEGIN:VALARM
 TRIGGER:-P1D
-DESCRIPTION:Recordatorio: Ceremonia Civil mañana
+DESCRIPTION:Recordatorio: Ceremonia de Civil mañana
 ACTION:DISPLAY
 END:VALARM
 END:VEVENT
@@ -422,7 +422,7 @@ DTSTART:${event.startDate}
 DTEND:${event.endDate}
 SUMMARY:${event.summary}
 DESCRIPTION:${event.description}
-LOCATION:${formData.attendCivil ? 'Subsede Comunal 11' : 'Salón Los Jardines'}
+LOCATION:${formData.attendCivil ? 'Subsede Comunal 11' : 'Salón Las Delias'}
 STATUS:CONFIRMED
 SEQUENCE:0
 BEGIN:VALARM
@@ -572,9 +572,6 @@ END:VCALENDAR`
             7 de Octubre, 2025
           </p>
           {/* Texto inferior */}
-          <p className="font-poppins font-normal text-base mb-12 opacity-90 text-shadow-lg animate-fade-in-up" style={{ animationDelay: '2.5s' }}>
-            💖 Sumate a nosotros en este día único 💖
-          </p>
           
           <Button 
             onClick={() => scrollToSection('countdown')}
@@ -626,10 +623,12 @@ END:VCALENDAR`
             ))}
           </div>
 
+          <p className="font-poppins font-normal text-lg text-center mt-12 text-eucalyptus/70">
+            💖 Sumate a nosotros en este día único 💖
+          </p>
+
           <div className="mt-12 space-y-6">
-            <p className="text-xl text-eucalyptus font-medium">
-              ¡Nos casamos el 7 de Octubre de 2025 a las 12:30 hs!
-            </p>
+            
           </div>
         </div>
       </section>
@@ -671,7 +670,7 @@ END:VCALENDAR`
                   <div className="w-16 h-16 bg-gradient-to-br from-eucalyptus/20 to-eucalyptus/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
                     <Heart className="w-8 h-8 text-eucalyptus" />
                   </div>
-                  <h3 className="font-poppins text-3xl text-eucalyptus mb-6">Ceremonia Civil</h3>
+                  <h3 className="font-poppins text-3xl text-eucalyptus mb-6">Ceremonia de Civil</h3>
                   <div className="space-y-4 text-charcoal mb-6">
                     <div className="flex items-center justify-center gap-3 group/item hover:text-eucalyptus transition-colors">
                       <Calendar className="w-6 h-6 text-champagne group-hover/item:scale-110 transition-transform" />
@@ -704,7 +703,7 @@ END:VCALENDAR`
                 {/* Map */}
                 <div className="h-48 relative overflow-hidden">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.0168907785845!2d-58.3815591!3d-34.6037181!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcca3b4ef90cbd%3A0xa0b3812e88e88e8e!2sPuerto%20Madero%2C%20Buenos%20Aires%2C%20Argentina!5e0!3m2!1sen!2sus!4v1234567890"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3286.9015017826946!2d-58.497924!3d-34.5307234!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb12d51edcfa3%3A0xf11ea055b32e5d63!2sLas%20Delias!5e0!3m2!1ses-419!2sar!4v1756425958245!5m2!1ses-419!2sar"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
@@ -729,13 +728,16 @@ END:VCALENDAR`
                       <Clock className="w-6 h-6 text-champagne group-hover/item:scale-110 transition-transform" />
                       <span className="text-lg">14:00 hs</span>
                     </div>
-                    <div className="flex items-center justify-center gap-3 group/item hover:text-eucalyptus transition-colors">
-                      <MapPin className="w-6 h-6 text-champagne group-hover/item:scale-110 transition-transform" />
-                      <span className="text-lg">Salón Los Jardines</span>
+                    <div className="flex flex-col items-center justify-center gap-1 group/item hover:text-eucalyptus transition-colors">
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-6 h-6 text-champagne group-hover/item:scale-110 transition-transform" />
+                        <span className="text-lg">Salón Las Delias</span>
+                      </div>
+                      <span className="text-sm text-charcoal/70">Gral. José de San Martín 2673, Florida</span>
                     </div>
                   </div>
                   <Button 
-                    onClick={() => window.open('https://maps.google.com/?q=Salon+Los+Jardines+Buenos+Aires', '_blank')}
+                    onClick={() => window.open('https://maps.app.goo.gl/hUXN4gBHdG4oBqPK8', '_blank')}
                     className="bg-champagne/10 hover:bg-eucalyptus hover:text-white text-eucalyptus border-eucalyptus/30 transition-all duration-300"
                   >
                     <Navigation className="w-4 h-4 mr-2" />
@@ -791,42 +793,6 @@ END:VCALENDAR`
                 <h4 className="font-poppins text-2xl text-eucalyptus mb-6">Datos de la cuenta</h4>
                 
                 <div className="space-y-6">
-                  {/* Titular */}
-                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
-                    <div className="text-left">
-                      <p className="text-sm text-charcoal/70 mb-1">Titular</p>
-                      <p className="text-base sm:text-lg font-semibold text-charcoal">Natalia Estefania Villagra</p>
-                    </div>
-                  </div>
-
-                  {/* CVU */}
-                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                      <div className="text-left flex-1 min-w-0">
-                        <p className="text-sm text-charcoal/70 mb-1">CVU</p>
-                        <p className="text-base sm:text-lg font-semibold text-charcoal break-all">0000003100038534588857</p>
-                      </div>
-                      <Button
-                        onClick={() => copyToClipboard('0000003100038534588857', 'cvu')}
-                        className="bg-champagne/10 hover:bg-eucalyptus hover:text-white text-eucalyptus border-0 transition-all duration-300 shrink-0 w-full sm:w-auto"
-                      >
-                        {copiedCVU ? (
-                          <><CheckCircle className="w-4 h-4 mr-2" /> Copiado</>
-                        ) : (
-                          <><Copy className="w-4 h-4 mr-2" /> Copiar</>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Mercado Pago */}
-                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
-                    <div className="text-left">
-                      <p className="text-sm text-charcoal/70 mb-1">Banco</p>
-                      <p className="text-base sm:text-lg font-semibold text-charcoal">Mercado Pago</p>
-                    </div>
-                  </div>
-
                   {/* Alias */}
                   <div className="bg-white/80 rounded-xl p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -846,6 +812,39 @@ END:VCALENDAR`
                       </Button>
                     </div>
                   </div>
+                  {/* CVU */}
+                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="text-left flex-1 min-w-0">
+                        <p className="text-sm text-charcoal/70 mb-1">CVU</p>
+                        <p className="text-base sm:text-lg font-semibold text-charcoal break-all">0000003100038534588857</p>
+                      </div>
+                      <Button
+                        onClick={() => copyToClipboard('0000003100038534588857', 'cvu')}
+                        className="bg-champagne/10 hover:bg-eucalyptus hover:text-white text-eucalyptus border-0 transition-all duration-300 shrink-0 w-full sm:w-auto"
+                      >
+                        {copiedCVU ? (
+                          <><CheckCircle className="w-4 h-4 mr-2" /> Copiado</>
+                        ) : (
+                          <><Copy className="w-4 h-4 mr-2" /> Copiar</>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  {/* Titular */}
+                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
+                    <div className="text-left">
+                      <p className="text-sm text-charcoal/70 mb-1">Titular</p>
+                      <p className="text-base sm:text-lg font-semibold text-charcoal">Natalia Estefania Villagra</p>
+                    </div>
+                  </div>
+                  {/* Mercado Pago */}
+                  <div className="bg-white/80 rounded-xl p-4 sm:p-6">
+                    <div className="text-left">
+                      <p className="text-sm text-charcoal/70 mb-1">Banco</p>
+                      <p className="text-base sm:text-lg font-semibold text-charcoal">Mercado Pago</p>
+                    </div>
+                  </div>
                 </div>
 
                 <p className="text-eucalyptus italic">
@@ -862,8 +861,8 @@ END:VCALENDAR`
         <div className="text-center mb-20">
           <h2 className="font-poppins text-4xl md:text-5xl font-bold text-eucalyptus mb-6">Confirmá tu Asistencia 💌</h2>
           <div className="w-32 h-1 bg-gradient-to-r from-transparent via-champagne to-transparent mx-auto mb-6"></div>
-          <p className="text-xl text-charcoal mb-2">Tu presencia es el regalo más importante para nosotros</p>
-          <p className="text-eucalyptus font-medium">Por favor, confirmá antes del 15 de septiembre</p>
+          <p className="text-xl text-charcoal mb-2">Tu presencia es el regalo más importante para nosotros.</p>
+          <p className="text-eucalyptus font-medium">¡Por favor, confirmá antes del 15 de septiembre!</p>
         </div>
 
         <Card className="bg-white/90 backdrop-blur-xl border-0 shadow-2xl overflow-hidden">
@@ -1017,7 +1016,7 @@ END:VCALENDAR`
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-2xl">⚖️</span>
-                            <h4 className="font-semibold text-eucalyptus">Ceremonia Civil</h4>
+                            <h4 className="font-semibold text-eucalyptus">Ceremonia de Civil</h4>
                           </div>
                           <p className="text-sm text-charcoal/70">12:30 hs</p>
                         </div>
@@ -1174,7 +1173,7 @@ END:VCALENDAR`
                   {formData.attendCivil && (
                     <div className="flex items-center gap-2 text-sm text-eucalyptus">
                       <span>⚖️</span>
-                      <span>Ceremonia Civil (12:30 hs)</span>
+                      <span>Ceremonia de Civil (12:30 hs)</span>
                     </div>
                   )}
                   {formData.attendLunch && (
