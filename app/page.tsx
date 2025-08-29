@@ -738,7 +738,7 @@ END:VCALENDAR`
           <CardContent className="p-16 relative z-10 text-center">
             <div className="space-y-8">
               <div className="text-2xl sm:text-3xl text-eucalyptus font-poppins font-medium leading-relaxed text-center">
-                Elegante sport ¡Sé vos!
+                Elegante sport ¡Sé&nbsp;vos!
               </div>
             </div>
           </CardContent>
