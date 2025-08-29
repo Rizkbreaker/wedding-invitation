@@ -551,10 +551,10 @@ END:VCALENDAR`
           </div>
 
           {/* Nombres principales */}
-          <div className="font-quicksand font-semibold text-[3.5rem] md:text-[5.5rem] mb-6 tracking-wide text-shadow-lg">
-            <span className="inline-block animate-fade-in-up" style={{ animationDelay: '0.5s' }}>Natalia</span>
-            <span className="mx-6 text-champagne animate-pulse text-5xl md:text-7xl">💕</span>
-            <span className="inline-block animate-fade-in-up" style={{ animationDelay: '1s' }}>Jan</span>
+          <div className="font-quicksand font-semibold text-[3.5rem] md:text-[5.5rem] mb-6 tracking-wide text-shadow-lg flex flex-col items-center">
+            <span className="inline-block animate-fade-in-up" style={{ animationDelay: '0.5s' }}>Jan</span>
+            <Heart className="w-10 h-10 md:w-12 md:h-12 my-2 text-champagne animate-heartbeat" style={{ animationDelay: '0.8s' }} />
+            <span className="inline-block animate-fade-in-up" style={{ animationDelay: '1s' }}>Nati</span>
           </div>
           
           <div className="flex items-center justify-center gap-6 mb-8">
