@@ -569,7 +569,7 @@ END:VCALENDAR`
           </p>
           {/* Fecha */}
           <p className="font-poppins font-medium text-3xl mb-4 text-champagne text-shadow-lg animate-fade-in-up" style={{ animationDelay: '2s' }}>
-            7 de Octubre, 2025
+            ¡Nos casamos el 7 de octubre de 2025 a las 12.30 hs!
           </p>
           {/* Texto inferior */}
           
@@ -600,7 +600,6 @@ END:VCALENDAR`
           <div className="mb-16">
             <h2 className="font-poppins text-4xl md:text-5xl font-bold text-eucalyptus mb-6">Faltan ⏰</h2>
             <div className="w-32 h-1 bg-gradient-to-r from-transparent via-champagne to-transparent mx-auto"></div>
-            <p className="text-eucalyptus/70 mt-4">Cada segundo nos acerca más a nuestro día especial</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
