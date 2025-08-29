@@ -1273,7 +1273,7 @@ END:VCALENDAR`
         </div>
         
         <div className="relative z-10">
-          <div className="font-poppins text-5xl mb-6 text-champagne">Natalia & Jan</div>
+          <div className="font-poppins text-5xl mb-6 text-champagne">Jan & Nati</div>
           
           {/* GIF romántico centrado */}
           <div className="flex justify-center mb-6">
