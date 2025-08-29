@@ -21,7 +21,6 @@ function WeddingInvitation() {
   const [scrollY, setScrollY] = useState(0)
   const [formData, setFormData] = useState({
     name: '',
-    guests: '1',
     message: '',
     attendCivil: false,
     attendLunch: false,
@@ -34,14 +33,12 @@ function WeddingInvitation() {
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
-    guests: '',
     message: '',
     events: '',
     dietary: ''
   })
   const [fieldValid, setFieldValid] = useState({
     name: false,
-    guests: true,
     message: true,
     events: false,
     dietary: true
@@ -128,17 +125,7 @@ function WeddingInvitation() {
     return true
   }
 
-  const validateGuests = (guests: string) => {
-    const num = Number(guests)
-    if (isNaN(num) || num < 1 || num > 10) {
-      setFieldErrors(prev => ({ ...prev, guests: 'Tiene que ser entre 1 y 10 invitados' }))
-      setFieldValid(prev => ({ ...prev, guests: false }))
-      return false
-    }
-    setFieldErrors(prev => ({ ...prev, guests: '' }))
-    setFieldValid(prev => ({ ...prev, guests: true }))
-    return true
-  }
+  
 
   const validateMessage = (message: string) => {
     if (message.length > 500) {
@@ -185,12 +172,12 @@ function WeddingInvitation() {
     
     // Validate all fields
     const nameValid = validateName(formData.name)
-    const guestsValid = validateGuests(formData.guests)
+    
     const messageValid = validateMessage(formData.message)
     const eventsValid = validateEvents(formData.attendCivil, formData.attendLunch)
     const dietaryValid = validateDietaryRestrictions(formData.attendLunch, formData.dietaryRestrictions, formData.dietaryDetails)
     
-    if (nameValid && guestsValid && messageValid && eventsValid && dietaryValid) {
+    if (nameValid && messageValid && eventsValid && dietaryValid) {
       setShowConfirmModal(true)
     }
   }
@@ -211,15 +198,7 @@ function WeddingInvitation() {
         return
       }
 
-      if (Number(formData.guests) < 1 || Number(formData.guests) > 10) {
-        toast({
-          title: "Error de validación",
-          description: "El número de invitados debe ser entre 1 y 10.",
-          variant: "destructive",
-        })
-        setIsLoading(false)
-        return
-      }
+      
 
       // Send to our internal API
       const response = await fetch('/api/rsvp', {
@@ -229,7 +208,6 @@ function WeddingInvitation() {
         },
         body: JSON.stringify({
           Nombre: formData.name,
-          Invitados: formData.guests,
           Mensaje: formData.message,
           attendCivil: formData.attendCivil,
           attendLunch: formData.attendLunch,
@@ -250,15 +228,13 @@ function WeddingInvitation() {
           if (typeof window !== 'undefined' && (window as any).gtag) {
             (window as any).gtag('event', 'rsvp_submitted', {
               event_category: 'engagement',
-              event_label: 'wedding_rsvp',
-              value: Number(result.data.invitados)
+              event_label: 'wedding_rsvp'
             })
           }
           
           // Simple local analytics (could be sent to your own analytics endpoint)
           const analyticsData = {
             timestamp: new Date().toISOString(),
-            guests: result.data.invitados,
             hasMessage: !!formData.message,
             userAgent: navigator.userAgent,
             referrer: document.referrer
@@ -280,13 +256,13 @@ function WeddingInvitation() {
         
         toast({
           title: "¡Confirmación enviada! ",
-          description: `Gracias ${result.data.nombre}! Esperamos verte con ${result.data.invitados} invitado${Number(result.data.invitados) > 1 ? 's' : ''} ${eventsDescription}. ¡Será un día inolvidable!`,
+          description: `Gracias ${result.data.nombre}! Esperamos verte ${eventsDescription}. ¡Será un día inolvidable!`,
         })
         
         // Reset after celebration
         setTimeout(() => {
           setIsSubmitted(false)
-          setFormData({ name: '', guests: '1', message: '', attendCivil: false, attendLunch: false, dietaryRestrictions: 'none', dietaryDetails: '' })
+          setFormData({ name: '', message: '', attendCivil: false, attendLunch: false, dietaryRestrictions: 'none', dietaryDetails: '' })
         }, 5000)
       } else {
         throw new Error(result.error || 'Error al enviar confirmación')
@@ -761,7 +737,7 @@ END:VCALENDAR`
           <div className="absolute inset-0 bg-gradient-to-br from-eucalyptus/5 via-transparent to-champagne/5"></div>
           <CardContent className="p-16 relative z-10 text-center">
             <div className="space-y-8">
-              <div className="text-3xl text-eucalyptus font-poppins font-medium leading-relaxed text-center">
+              <div className="text-2xl sm:text-3xl text-eucalyptus font-poppins font-medium leading-relaxed text-center">
                 Elegante sport ¡Sé vos!
               </div>
             </div>
@@ -907,7 +883,7 @@ END:VCALENDAR`
             ) : (
               <form onSubmit={handleFormSubmit} className="space-y-8">
                 <div className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
+                  <div className="space-y-2 md:col-span-2">
                     <label className="block text-sm font-semibold text-charcoal mb-3">
                       Nombre completo *
                     </label>
@@ -935,30 +911,7 @@ END:VCALENDAR`
                       </p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-charcoal mb-3">
-                      Número de acompañantes
-                    </label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={formData.guests}
-                      onChange={(e) => {
-                        const value = e.target.value
-                        setFormData({...formData, guests: value})
-                        validateGuests(value)
-                      }}
-                      onBlur={() => validateGuests(formData.guests)}
-                      className={`border-2 focus:border-eucalyptus rounded-xl px-4 py-3 text-lg transition-all duration-300 hover:border-eucalyptus/50 ${
-                        fieldErrors.guests ? 'border-red-400 focus:border-red-500' : 
-                        fieldValid.guests ? 'border-green-400 focus:border-eucalyptus' : 'border-eucalyptus/30'
-                      }`}
-                    />
-                    {fieldErrors.guests && (
-                      <p className="text-red-500 text-sm mt-1 animate-fade-in">{fieldErrors.guests}</p>
-                    )}
-                  </div>
+                  
                 </div>
                 
                 <div className="space-y-2">
@@ -1130,7 +1083,7 @@ END:VCALENDAR`
                 <div className="text-center pt-6">
                   <Button 
                     type="submit"
-                    disabled={isLoading || !fieldValid.name || !fieldValid.guests || !fieldValid.message || !fieldValid.events || !fieldValid.dietary}
+                    disabled={isLoading || !fieldValid.name || !fieldValid.message || !fieldValid.events || !fieldValid.dietary}
                     className="bg-eucalyptus hover:bg-eucalyptus/90 text-white px-12 py-4 rounded-full text-lg font-semibold transition-all duration-500 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-w-[200px]"
                   >
                     <div className="flex items-center gap-2">
@@ -1162,10 +1115,7 @@ END:VCALENDAR`
                 <span className="text-charcoal/70">Nombre:</span>
                 <span className="font-semibold text-charcoal">{formData.name}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-charcoal/70">Invitados:</span>
-                <span className="font-semibold text-charcoal">{formData.guests}</span>
-              </div>
+              
               <div className="pt-2 border-t border-eucalyptus/20">
                 <span className="text-charcoal/70 block mb-2">Eventos seleccionados:</span>
                 <div className="space-y-1">

@@ -36,7 +36,6 @@ function sanitizeInput(input: string): string {
 interface RSVPData {
   Fecha: string
   Nombre: string
-  Invitados: string
   Mensaje: string
   Asiste_Civil: string
   Asiste_Almuerzo: string
@@ -48,10 +47,6 @@ function validateRSVPData(data: any): { isValid: boolean; errors: string[] } {
   
   if (!data.Nombre || typeof data.Nombre !== 'string' || data.Nombre.trim().length < 2) {
     errors.push('Nombre es requerido y debe tener al menos 2 caracteres')
-  }
-  
-  if (!data.Invitados || isNaN(Number(data.Invitados)) || Number(data.Invitados) < 1 || Number(data.Invitados) > 10) {
-    errors.push('Número de invitados debe ser entre 1 y 10')
   }
   
   if (data.Mensaje && typeof data.Mensaje === 'string' && data.Mensaje.length > 500) {
@@ -131,7 +126,6 @@ export async function POST(request: NextRequest) {
         minute: '2-digit'
       }),
       Nombre: sanitizeInput(body.Nombre),
-      Invitados: String(Number(body.Invitados)), // Ensure it's a valid number
       Mensaje: body.Mensaje ? sanitizeInput(body.Mensaje) : 'Sin mensaje',
       Asiste_Civil: body.attendCivil ? 'Sí' : 'No',
       Asiste_Almuerzo: body.attendLunch ? 'Sí' : 'No',
@@ -170,8 +164,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'RSVP enviado exitosamente',
       data: {
-        nombre: sanitizedData.Nombre,
-        invitados: sanitizedData.Invitados
+        nombre: sanitizedData.Nombre
       }
     })
     

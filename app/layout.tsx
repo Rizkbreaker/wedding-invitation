@@ -16,7 +16,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Jan & Natalia - Nuestra Boda 💕",
+  title: "Invitacion de Jan & Nati",
   description: "Te invitamos a celebrar nuestro amor el 7 de Octubre, 2025 ✨",
   generator: 'v0.dev',
   icons: {
